@@ -10,9 +10,13 @@ public class Game {
     private static final String ASK_DIF_LVL_MSG = "Enter difficulty level:" +
             "\n'E' for easy\n'M' for medium\n'H' for hard\n>>> ";
     private static final String ASK_N_MSG = "Enter number of rows / columns: ";
+    private static final String ASK_MOVE_TYPE_MSG = "Choose move type. 0 to uncover, 1 to flag: ";
     private static final String ASK_ROW = "Enter row: ";
     private static final String ASK_COLUMN = "Enter column: ";
-    private static final String END_MSG = "Game over";
+    private static final String END_LOSS_MSG = "Game over. You lost.";
+    private static final String END_WIN_MSG = "Game over. You won.";
+    private static final String ERROR_MSG = "ERROR";
+
 
     public static void main(String[] args) {
         difficultyLvlChar = askDifficultyLvl();
@@ -25,7 +29,6 @@ public class Game {
         Game.gameLoop(table);
 
     }
-
 
 
     public static char askDifficultyLvl() {
@@ -50,6 +53,18 @@ public class Game {
         return inputN;
     }
 
+    public static int askMoveType() {
+        //0 = uncover, 1 = flag
+        int moveType;
+        do {
+            System.out.print(ASK_MOVE_TYPE_MSG);
+            moveType = IN.nextInt();
+        } while(moveType != 0 && moveType != 1);
+
+        return moveType;
+    }
+
+    //askRow & askColumn both adjust the input row / col to 0-indexing
     public static int askRow() {
         int inputRow;
 
@@ -61,6 +76,7 @@ public class Game {
         return inputRow - 1;
     }
 
+    //askRow & askColumn both adjust the input row / col to 0-indexing
     public static int askColumn() {
         int inputColumn;
         do{
@@ -71,26 +87,65 @@ public class Game {
         return inputColumn - 1;
     }
 
-    public static void checkMove(Cell chosenCellParam) {
-        if(chosenCellParam.getIsMine()) {
-            endGame();
+    public static void makeMove(int moveTypeParam, int inputRowParam, int inputColumnParam, Table tableParam){
+        switch (moveTypeParam) {
+            case 0:
+                Cell chosenUncoveredCell = tableParam.getCell(inputRowParam, inputColumnParam);
+                chosenUncoveredCell.setIsClicked();
+                tableParam.clickMinelessNeighbours(chosenUncoveredCell);
+                break;
+            case 1:
+                Cell chosenFlaggedCell = tableParam.getCell(inputRowParam, inputColumnParam);
+                chosenFlaggedCell.setIsFlagged();
+                break;
+            default:
+                System.out.println(ERROR_MSG);
+                break;
         }
     }
 
-    public static void endGame() {
-        System.out.println(END_MSG);
-        isGame = false;
+    //the isClickedCounter needs to account for unrevealed mined cells
+    //i.e. isClickedCounter has to equal (N * N - numberOfMines)
+    public static void checkMove(Cell chosenCellParam, Table tableParam) {
+        Cell[][] table = tableParam.getTABLE();
+        if(chosenCellParam.getIsMine() && !chosenCellParam.getIsFlagged()) {
+            endGame(0);
+        } else if (!chosenCellParam.getIsFlagged()){
+            int isClickedCounter = 0;
+            int numberOfMines = tableParam.getNumberOfMines();
+            for(int i = 0; i < getN(); i++) {
+                for(int j = 0; j < getN(); j++) {
+                    if(table[i][j].getIsClicked())
+                        isClickedCounter++;
+                }
+            }
+            if(((getN() * getN()) - numberOfMines) == isClickedCounter) {
+                endGame(1);
+            }
+        }
+
     }
+
+    public static void endGame(int winParam) {
+        if (winParam == 0) {
+            System.out.println(END_LOSS_MSG);
+            isGame = false;
+        } else if (winParam == 1){
+                System.out.println(END_WIN_MSG);
+                isGame = false;
+            }
+
+        }
 
     public static void gameLoop(Table tableParam) {
         while(isGame) {
             int inputRow = askRow();
             int inputColumn = askColumn();
-            Cell chosenCell = tableParam.findCell(inputRow, inputColumn);
-            chosenCell.setIsClicked();
-            tableParam.clickMinelessNeighbours(chosenCell, tableParam.getTABLE());
+            int moveType = askMoveType();
+            Cell chosenCell = tableParam.getCell(inputRow, inputColumn);
+            makeMove(moveType, inputRow, inputColumn, tableParam);
             tableParam.printer();
-            Game.checkMove(chosenCell);
+            Game.checkMove(chosenCell, tableParam);
         }
     }
 
@@ -103,3 +158,4 @@ public class Game {
     }
 
 }
+

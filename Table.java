@@ -1,16 +1,18 @@
+import java.util.HashSet;
+
 public class Table {
 
     private final int N;
     private final int difficultyLvl;
+    private final int numberOfMines;
 
     private final Cell[][] TABLE;
-
-
 
     public Table(int nParam, char difficultyLvlCharParam) {
         this.N = setN(nParam);
         this.difficultyLvl = setDifficultyLvl(difficultyLvlCharParam);
         this.TABLE = setTable(nParam);
+        this.numberOfMines = setNumberOfMines();
     }
 
     public Cell[][] setTable(int inputNParam) {
@@ -27,6 +29,7 @@ public class Table {
 
     }
 
+    //counts all mined cells in TABLE
     public void countAllMines() {
         for(int i = 0; i < N; i++){
             for(int j = 0; j < N; j++) {
@@ -35,17 +38,7 @@ public class Table {
         }
     }
 
-    public void readCell(Cell cellParam) {
-
-        if(cellParam.getIsMine()) {
-            Game.endGame();
-        } else if(!cellParam.getIsMine() && cellParam.getMinedNeighbours() == 0) {
-            //
-        } else if(!cellParam.getIsMine() && cellParam.getMinedNeighbours() != 0) {
-            //
-        }
-    }
-
+    //counts mined neighbours of a given cell
     public int countMines(int inputRowParam, int inputColumnParam) {
 
         int i = inputRowParam;
@@ -64,7 +57,7 @@ public class Table {
         if (j - 1 >= 0 && this.TABLE[i][j - 1].getIsMine()) {
             minedNeighbours++;
         }
-        if (j + 1 < this.TABLE[0].length && this.TABLE[i][j + 1].getIsMine()) {
+        if (j + 1 < this.TABLE.length && this.TABLE[i][j + 1].getIsMine()) {
             minedNeighbours++;
         }
         if (i + 1 < this.TABLE.length && j - 1 >= 0 && this.TABLE[i + 1][j - 1].getIsMine()) {
@@ -80,140 +73,103 @@ public class Table {
         return minedNeighbours;
     }
 
-    public Cell findCell(int inputRowParam, int inputColumnParam) {
+    public Cell getCell(int inputRowParam, int inputColumnParam) {
         return this.TABLE[inputRowParam][inputColumnParam];
     }
 
-    public void clickMinelessNeighbours(Cell chosenCellParam, Cell[][] tableParam) {
-        int startRow = chosenCellParam.getRow();
-        int startColumn = chosenCellParam.getColumn();
+    //flood-fill
+    public void clickMinelessNeighbours(Cell chosenCellParam){
+        HashSet<Cell> minelessNeighbours = new HashSet<Cell>();
 
-//        Cell[] startRowArray = TABLE[startRow];
-//
-//        int startRowFirstMined = -1;
-//        int startRowLastMined = -1;
-//
-//        for(int i = 0; i < getN(); i++) {
-//            if(startRowArray[i].getIsMine()) {
-//                startRowFirstMined = i;
-//                break;
-//            }
-//        }
-//
-//        for(int i = startRowArray.length - 1; i >= 0; i--) {
-//            if(startRowArray[i].getIsMine()) {
-//                startRowLastMined = i;
-//                break;
-//            }
-//        }
-//
-//        for(int i = startRowFirstMined; i == startRowLastMined; i++) {
-//            TABLE[startRow][i].setIsClicked();
-//        }
-//
-//        //downwards of the chosen row
-//        for(int i = startRow; i < getN() - 1; i++) {
-//            int previousRow = i;
-//            int currentRow = i + 1;
-//
-//
-//
-//        }
+        minelessNeighbours.add(chosenCellParam);
 
-
-
-        //downwards of the chosen row
-        for(int i = startRow; i < this.getN(); i++) {
-
-            //rightwards of the chosen column
-            for(int j = startColumn; j < this.getN(); j++) {
-                if(!tableParam[i][j].getIsMine()) {
-                    tableParam[i][j].setIsClicked();
-                } else {
-                    break;
-                }
-            }
-            //leftwards of the chosen column
-            for(int j = startColumn; j >= 0; j--) {
-                if(!tableParam[i][j].getIsMine()) {
-                    tableParam[i][j].setIsClicked();
-                } else {
-                    break;
-                }
-            }
-        }
-
-        //upwards of the chosen row
-        for(int i = startRow; i >= 0; i--) {
-
-            //rightwards of the chosen column
-            for(int j = startColumn; j < this.getN(); j++) {
-                if(!tableParam[i][j].getIsMine()) {
-                    tableParam[i][j].setIsClicked();
-                } else {
-                    break;
-                }
-            }
-            //leftwards of the chosen column
-            for(int j = startColumn; j >= 0; j--) {
-                if(!tableParam[i][j].getIsMine()) {
-                    tableParam[i][j].setIsClicked();
-                } else {
-                    break;
-                }
-            }
-        }
-
-    }
-
-    private boolean readPreviousRowDownwards(int currentRowParam, int previousRowParam) {
-        int previousRow = previousRowParam;
-        int currentRow = currentRowParam;
-
-
-        int previousRowFirstMined = -1;
-        int previousRowLastMined = -1;
-
-        int currentRowFirstMined = -1;
-        int currentRowLastMined = -1;
-
-        Cell[] previousRowArray = TABLE[previousRow];
-        Cell[] currentRowArray = TABLE[currentRow];
-
-        for(int i = 0; i < getN(); i++) {
-            if(previousRowArray[i].getIsMine()) {
-                previousRowFirstMined = i;
+        while(!minelessNeighbours.isEmpty()){
+            Cell processedCell = minelessNeighbours.stream().findFirst().orElse(null);
+            processedCell.setIsClicked();
+            if(processedCell.getMinedNeighbours() != 0){
                 break;
             }
-        }
+            int i = processedCell.getColumn();
+            int j = processedCell.getRow();
 
-        for(int i = previousRowArray.length - 1; i >= 0; i--) {
-            if(previousRowArray[i].getIsMine()) {
-                previousRowLastMined = i;
-                break;
+
+            if (i - 1 >= 0
+                    && !this.TABLE[i - 1][j].getIsMine()
+                    && !this.TABLE[i - 1][j].getIsClicked()) {
+                if(this.TABLE[i - 1][j].getMinedNeighbours() == 0){
+                    minelessNeighbours.add(this.TABLE[i - 1][j]);
+                }
+                clickMinelessNeighbours(this.TABLE[i - 1][j]);
             }
-        }
-        for(int i = 0; i < getN(); i++) {
-            if(currentRowArray[i].getIsMine()) {
-                currentRowFirstMined = i;
-                break;
+
+            if (i - 1 >= 0 && j - 1 >= 0
+                    && !this.TABLE[i - 1][j - 1].getIsMine()
+                    && !this.TABLE[i - 1][j - 1].getIsClicked()) {
+                if(this.TABLE[i - 1][j - 1].getMinedNeighbours() == 0){
+                    minelessNeighbours.add(this.TABLE[i - 1][j - 1]);
+                }
+                clickMinelessNeighbours(this.TABLE[i - 1][j - 1]);
             }
-        }
 
-        for(int i = currentRowArray.length - 1; i >= 0; i--) {
-            if(currentRowArray[i].getIsMine()) {
-                currentRowLastMined = i;
-                break;
+            if (j - 1 >= 0
+                    && !this.TABLE[i][j - 1].getIsMine()
+                    && !this.TABLE[i][j - 1].getIsClicked()) {
+                if(this.TABLE[i][j - 1].getMinedNeighbours() == 0){
+                    minelessNeighbours.add(this.TABLE[i][j - 1]);
+                }
+                clickMinelessNeighbours(this.TABLE[i][j - 1]);
             }
-        }
 
-        if((currentRowFirstMined < previousRowFirstMined && currentRowFirstMined < previousRowLastMined)
-            || (currentRowFirstMined > previousRowLastMined && currentRowLastMined > previousRowLastMined)) {
-            return false;
-        } else {
-            return true;
-        }
+            if (i + 1 < this.TABLE.length && j - 1 >= 0
+                    && !this.TABLE[i + 1][j - 1].getIsMine()
+                    && !this.TABLE[i + 1][j - 1].getIsClicked()) {
+                if(this.TABLE[i + 1][j - 1].getMinedNeighbours() == 0){
+                    minelessNeighbours.add(this.TABLE[i + 1][j - 1]);
+                }
+                clickMinelessNeighbours(this.TABLE[i + 1][j - 1]);
+            }
 
+            if (i + 1 < this.TABLE.length
+                    && !this.TABLE[i + 1][j].getIsMine()
+                    && !this.TABLE[i + 1][j].getIsClicked()) {
+                if(this.TABLE[i + 1][j].getMinedNeighbours() == 0){
+                    minelessNeighbours.add(this.TABLE[i + 1][j]);
+                }
+                clickMinelessNeighbours(this.TABLE[i + 1][j]);
+            }
+
+            if (i + 1 < this.TABLE.length && j + 1 < this.TABLE.length
+                    && !this.TABLE[i + 1][j + 1].getIsMine()
+                    && !this.TABLE[i + 1][j + 1].getIsClicked()) {
+                if(this.TABLE[i + 1][j + 1].getMinedNeighbours() == 0){
+                    minelessNeighbours.add(this.TABLE[i + 1][j + 1]);
+                }
+                clickMinelessNeighbours(this.TABLE[i + 1][j + 1]);
+            }
+
+            if (j + 1 < this.TABLE.length
+                    && !this.TABLE[i][j + 1].getIsMine()
+                    && !this.TABLE[i][j + 1].getIsClicked()) {
+                if(this.TABLE[i][j + 1].getMinedNeighbours() == 0){
+                    minelessNeighbours.add(this.TABLE[i][j + 1]);
+                }
+                clickMinelessNeighbours(this.TABLE[i][j + 1]);
+            }
+
+            if (i - 1 >= 0 && j + 1 < this.TABLE.length
+                    && !this.TABLE[i - 1][j + 1].getIsMine()
+                    && !this.TABLE[i - 1][j + 1].getIsClicked()) {
+                if(this.TABLE[i - 1][j + 1].getMinedNeighbours() == 0){
+                    minelessNeighbours.add(this.TABLE[i - 1][j + 1]);
+                }
+                clickMinelessNeighbours(this.TABLE[i - 1][j + 1]);
+            }
+
+            minelessNeighbours.remove(processedCell);
+
+
+
+        }
     }
 
     public void printer() {
@@ -238,6 +194,7 @@ public class Table {
 
     }
 
+    //sets the diff level based on user input
     private int setDifficultyLvl(char difficultyLvlCharParam){
         switch (difficultyLvlCharParam) {
             case 'E':
@@ -256,6 +213,18 @@ public class Table {
         return inputNParam;
     }
 
+    private int setNumberOfMines(){
+        int numberOfMines = 0;
+        for(int i = 0; i < N; i++){
+            for(int j = 0; j < N; j++) {
+                if(this.TABLE[i][j].getIsMine()){
+                    numberOfMines++;
+                }
+            }
+        }
+    return numberOfMines;
+    }
+
     public Cell[][] getTABLE() {
         return this.TABLE;
     }
@@ -266,6 +235,10 @@ public class Table {
 
     public int getN() {
         return this.N;
+    }
+
+    public int getNumberOfMines(){
+        return this.numberOfMines;
     }
 
 
