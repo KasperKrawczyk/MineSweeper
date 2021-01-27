@@ -36,6 +36,7 @@ public class Game {
         do {
             System.out.print(ASK_DIF_LVL_MSG);
             inputDiffLvl = IN.next().charAt(0);
+            inputDiffLvl = Character.toUpperCase(inputDiffLvl);
         } while (inputDiffLvl != 'E' && inputDiffLvl != 'M' && inputDiffLvl != 'H');
 
         return inputDiffLvl;
@@ -43,12 +44,11 @@ public class Game {
 
     public static int askN() {
         int inputN;
-        System.out.print(ASK_N_MSG);
-        while (!IN.hasNextInt()) {
+
+        do{
             System.out.print(ASK_N_MSG);
-            IN.next();
-        }
-        inputN = IN.nextInt();
+            inputN = IN.nextInt();
+        } while (inputN <= 0);
 
         return inputN;
     }
@@ -71,7 +71,7 @@ public class Game {
         do {
             System.out.print(ASK_ROW);
             inputRow = IN.nextInt();
-        } while(inputRow > N && inputRow <= 0);
+        } while(inputRow > N || inputRow <= 0);
 
         return inputRow - 1;
     }
@@ -82,7 +82,7 @@ public class Game {
         do{
             System.out.print(ASK_COLUMN);
             inputColumn = IN.nextInt();
-        } while(inputColumn > N && inputColumn <= 0);
+        } while(inputColumn > N || inputColumn <= 0);
 
         return inputColumn - 1;
     }

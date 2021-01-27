@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Random;
 
 public class Cell {
@@ -9,6 +10,7 @@ public class Cell {
     private final int mineFactor;
     private final Random randomInt = new Random();
     private final int mineRandomVar = randomInt.nextInt(100);
+    private final ArrayList<Cell> legalNeighbours = new ArrayList<Cell>();
 
     private boolean isClicked = false;
     private boolean isFlagged = false;
@@ -71,6 +73,37 @@ public class Cell {
 
     public void setIsFlagged() {
         this.isFlagged = true;
+    }
+
+    public void setLegalNeighbours(){
+        int row = this.getRow();
+        int column = this.getColumn();
+
+        if(row == 0){
+            if(column == 0){
+                // left upper corner
+            } else if(column == Game.getN() - 1){
+                //right upper corner
+            } else {
+                // remainder of upper boundary
+            }
+            // right upper corner
+        } else if(row == Game.getN() - 1){
+            if(column == 0){
+                //left lower corner
+            } else if(column == Game.getN() - 1){
+                //right lower corner
+            } else {
+                // remainder of lower boundary
+            }
+            // left lower corner
+        } else if(row <= Game.getN() - 2 && row >= 2 && column == 0){
+            // remainder of left boundary
+        } else if(row <= Game.getN() - 2 && row >= 2 && column == Game.getN() - 1){
+            // remainder of right boundary
+        } else {
+            // all 8 neighbours
+        }
     }
 
     public void setMinedNeighbours(int minedNeighboursParam) {
